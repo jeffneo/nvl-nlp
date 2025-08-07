@@ -1,103 +1,139 @@
-import Image from "next/image";
+"use client";
+import { useState, useEffect, useRef } from "react";
+import GraphVisualization from "@/components/GraphVisualization";
+import { MoonLoader } from "react-spinners";
 
-export default function Home() {
+const Home = () => {
+  const [nodes, setNodes] = useState([]);
+  const [rels, setRels] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [focusNodeId, setFocusNodeId] = useState(null);
+
+  // Comment box state
+  const [comment, setComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const fetchRef = useRef(null);
+
+  useEffect(() => {
+    const fetchGraphVisualization = async () => {
+      try {
+        const res = await fetch("/api/graph-visualization", {
+          method: "GET",
+          // body: JSON.stringify({}),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!res.ok) {
+          throw new Error("Network response was not ok");
+        }
+
+        const data = await res.json();
+        console.log("Data:", data);
+        setNodes(data.nodes);
+        setRels(data.rels);
+      } catch (error) {
+        console.error("Error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (fetchRef.current) return;
+    fetchRef.current = true;
+    fetchGraphVisualization();
+  }, []);
+
+  const handleCommentSubmit = async (e) => {
+    e.preventDefault();
+    if (!comment.trim()) return; // Prevent empty submissions
+    setSubmitting(true);
+    // Handle sending comment to backend
+    try {
+      const res = await fetch(
+        `/api/graph-visualization?option=graph-rag&content=${encodeURIComponent(
+          comment
+        )}`
+      );
+      if (!res.ok) throw new Error("Failed to execute graphRAG");
+      const data = await res.json();
+      // You can now update your graph with new nodes/rels
+      console.log("graphRAG data:", data);
+      setNodes((prev) => [...prev, ...data.nodes]);
+      setRels((prev) => [...prev, ...data.rels]);
+    } catch (err) {
+      console.error("graphRAG failed:", err);
+    } finally {
+      setSubmitting(false);
+      setComment(""); // Clear the comment box
+    }
+  };
+
+  const handleTextareaKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleCommentSubmit(e);
+    }
+    // If Shift+Enter, do nothing (allows newline)
+  };
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+    <div className="h-screen w-screen flex justify-center items-center bg-transparent">
+      <div className="h-full w-full relative">
+        <>
+          {loading ? (
+            <MoonLoader
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+              color="oklch(0.488 0.243 264.376)"
+              size={50}
+              loading={true}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+          ) : (
+            <GraphVisualization
+              nodes={nodes}
+              rels={rels}
+              focusNodeId={focusNodeId}
+              setFocusNodeId={setFocusNodeId}
+            />
+          )}
+        </>
+
+        {/* Comment Box */}
+        <form
+          className="bg-white rounded-lg shadow absolute bottom-8 right-8 z-10 py-2 px-4 flex flex-col w-[30vw]"
+          onSubmit={handleCommentSubmit}
+        >
+          <label htmlFor="comment" className="font-semibold mb-1 text-gray-700">
+            Search for data
+          </label>
+          <textarea
+            id="comment"
+            className="border border-gray-200 rounded-md p-2 mb-2 resize-none focus:outline-none focus:ring focus:border-blue-300"
+            rows={3}
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            onKeyDown={handleTextareaKeyDown}
+            placeholder="What do you need to find?"
+            disabled={loading}
+          />
+          <button
+            type="submit"
+            className="bg-blue-600 text-white rounded-lg py-1 px-3 hover:bg-blue-700 transition self-end"
+            disabled={loading}
           >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+            Submit
+          </button>
+          {submitting && (
+            <span className="text-green-600 mt-1 text-sm">
+              Searching for data...
+            </span>
+          )}
+        </form>
+      </div>
     </div>
   );
-}
+};
+
+export default Home;

@@ -19,6 +19,7 @@
 
 # production
 /build
+/nvl-nlp-bundle
 
 # misc
 .DS_Store

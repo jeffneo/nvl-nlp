@@ -9,13 +9,16 @@ const K = 5;
 const EP = 0.02;
 
 const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY,
+  vertextai : true, 
+  project: process.env.GOOGLE_PROJECT,
+  location:process.env.LOCATION
 });
 
 const vectorize = async (content) => {
   const response = await ai.models.embedContent({
     // model: "gemini-embedding-exp-03-07",
-    model: "gemini-embedding-001",
+    // model: "gemini-embedding-001",
+    mode: process.env.EMBEDDING_MODEL,
     contents: content,
     config: {
       taskType: "SEMANTIC_SIMILARITY",

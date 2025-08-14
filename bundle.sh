@@ -11,8 +11,8 @@ rm -rf .next
 npm run build         # requires output:'standalone' in next.config.js
 
 # 2. Clean destination
-rm -rf nvl-nlp-bundle
-mkdir -p nvl-nlp-bundle/.next
+rm -rf nvl-nlp-bundle-2
+mkdir -p nvl-nlp-bundle-2/.next
 
 # 3. Always copy the two critical folders verbatim
 cp -R .next/standalone         nvl-nlp-bundle/.next/standalone

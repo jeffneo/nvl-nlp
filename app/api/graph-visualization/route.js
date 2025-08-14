@@ -2,16 +2,17 @@ import { NextResponse } from "next/server";
 import { getNeo4jSession } from "@/lib/neo4j";
 import { GoogleGenAI } from "@google/genai";
 
-export const runtime = "edge";
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 // graphRAG hyperparameters
 const K = 5;
 const EP = 0.02;
 
 const ai = new GoogleGenAI({
-  vertextai : true, 
-  project: proces.env.PROJECT,
-  location:process.env.LOCATION
+  vertexai: true, 
+  project: process.env.PROJECT,
+  location:process.env.LOCATION,
 });
 
 const vectorize = async (content) => {

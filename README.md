@@ -34,3 +34,18 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+
+## Instructions for creating a bundle
+
+Make sure to be within the home directory when creating the bundle and also, make sure to use the right node version ( Node 22 in this case)
+
+rm -rf .next && \
+npm run build && \
+rm -rf nvl-nlp-bundle-2 && \
+mkdir -p nvl-nlp-bundle-2/next && \
+cp -R .next/standalone nvl-nlp-bundle-2/next/standalone && \
+cp -R .next/static     nvl-nlp-bundle-2/next/static && \
+[ -d public ] && cp -R public nvl-nlp-bundle-2/public || true && \
+[ -f .env ] && cp .env nvl-nlp-bundle-2/.env || true && \
+zip -r nvl-nlp-bundle-2.zip nvl-nlp-bundle-2

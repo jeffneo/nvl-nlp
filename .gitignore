@@ -20,6 +20,8 @@
 # production
 /build
 /nvl-nlp-bundle
+/nvl-nlp-bundle-2
+/nvl-nlp-bundle-2.zip
 
 # misc
 .DS_Store

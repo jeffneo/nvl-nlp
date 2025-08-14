@@ -10,7 +10,7 @@ const EP = 0.02;
 
 const ai = new GoogleGenAI({
   vertextai : true, 
-  project: process.env.GOOGLE_PROJECT,
+  project: proces.env.PROJECT,
   location:process.env.LOCATION
 });
 

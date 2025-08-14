@@ -18,7 +18,7 @@ const vectorize = async (content) => {
   const response = await ai.models.embedContent({
     // model: "gemini-embedding-exp-03-07",
     // model: "gemini-embedding-001",
-    mode: process.env.EMBEDDING_MODEL,
+    model: process.env.EMBEDDING_MODEL,
     contents: content,
     config: {
       taskType: "SEMANTIC_SIMILARITY",
